@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateUserDto {
   @IsNotEmpty({ message: 'Tên không được để trống' })
@@ -13,14 +13,12 @@ export class CreateUserDto {
   @IsString({ message: 'Mật khẩu phải là chuỗi' })
   password: string;
 
-  @IsNotEmpty({ message: 'Số điện thoại không được để trống' })
+  @IsOptional()
   phone: string;
 
-  @IsNotEmpty({ message: 'Địa chỉ không được để trống' })
-  @IsString({ message: 'Địa chỉ phải là chuỗi' })
+  @IsOptional()
   address: string;
 
-  @IsNotEmpty({ message: 'Ảnh không được để trống' })
-  @IsString({ message: 'Ảnh phải là chuỗi' })
+  @IsOptional()
   image: string;
 }

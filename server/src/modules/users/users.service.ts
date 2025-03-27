@@ -126,4 +126,12 @@ export class UsersService {
       );
     }
   }
+
+  async findByEmail(email: string) {
+    return await this.userModel.findOne({ email });
+  }
+
+  async getUserByEmail(email: string) {
+    return await this.userModel.findOne({ email }).select('-password');
+  }
 }
