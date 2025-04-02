@@ -3,8 +3,10 @@
   "collection": "@nestjs/schematics",
   "sourceRoot": "src",
   "compilerOptions": {
+    "assets": ["mail/templates/**/*"],
     "deleteOutDir": true,
     "webpack": true,
-    "tsConfigPath": "tsconfig.json"
+    "tsConfigPath": "tsconfig.json",
+    "watchAssets": true
   }
 }

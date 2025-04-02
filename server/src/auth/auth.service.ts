@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { UsersService } from '@/modules/users/users.service';
 import { comparePassword } from '@/helpers/bcrypt-password';
 import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 import { GlobalResponse, GlobalResponseData } from '@/global/globalResponse';
 import { JwtService } from '@nestjs/jwt';
+import { RegisterUserDto } from '@/auth/dto/register.dto';
 
 @Injectable()
 export class AuthService {
@@ -49,5 +50,9 @@ export class AuthService {
       return user;
     }
     return null;
+  }
+
+  async registerUser(registerDto: RegisterUserDto) {
+    return this.usersService.registerUser(registerDto);
   }
 }

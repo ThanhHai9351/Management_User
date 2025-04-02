@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Model } from 'mongoose';
@@ -8,9 +8,16 @@ import { hashPassword } from '@/helpers/bcrypt-password';
 import { GlobalResponse, GlobalResponseData } from '@/global/globalResponse';
 import { ReasonPhrases, StatusCodes } from 'http-status-codes';
 import aqp from 'api-query-params';
+import { RegisterUserDto } from '@/auth/dto/register.dto';
+import { v4 as uuidv4 } from 'uuid';
+import { MailerService } from '@nestjs-modules/mailer';
+
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private userModel: Model<User>) {}
+  constructor(
+    @InjectModel(User.name) private userModel: Model<User>,
+    private readonly mailerService: MailerService,
+  ) {}
 
   async isEmailExists(email: string) {
     const user = await this.userModel.exists({ email });
@@ -133,5 +140,42 @@ export class UsersService {
 
   async getUserByEmail(email: string) {
     return await this.userModel.findOne({ email }).select('-password');
+  }
+
+  async registerUser(registerDto: RegisterUserDto) {
+    try {
+      const isEmailExists = await this.isEmailExists(registerDto.email);
+      if (isEmailExists) {
+        return GlobalResponse(StatusCodes.BAD_REQUEST, 'Email đã tồn tại');
+      }
+      const codeId = uuidv4();
+      const hashedPassword = await hashPassword(registerDto.password);
+      const user = await this.userModel.create({
+        ...registerDto,
+        isActive: false,
+        codeId,
+        codeExpired: new Date(Date.now() + 60 * 60 * 1000),
+        password: hashedPassword,
+      });
+
+      await this.mailerService.sendMail({
+        to: user.email,
+        from: 'Hari',
+        subject: 'Active your account at User Management!',
+        template: 'register.hbs',
+        context: {
+          name: user?.name || user?.email,
+          activationCode: codeId,
+        },
+      });
+      return GlobalResponseData(
+        StatusCodes.CREATED,
+        ReasonPhrases.CREATED,
+        user,
+      );
+    } catch (err) {
+      console.log(err);
+      throw new InternalServerErrorException();
+    }
   }
 }
