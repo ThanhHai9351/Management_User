@@ -14,15 +14,14 @@ import type { MenuProps } from 'antd';
 import Link from 'next/link'
 
 type MenuItem = Required<MenuProps>['items'][number];
-const AdminSideBar = () => {
+export default function AdminSideBar() {
     const { Sider } = Layout;
     const { collapseMenu } = useContext(AdminContext)!;
-
     const items: MenuItem[] = [
 
         {
             key: 'grp',
-            label: 'Hỏi Dân IT',
+            label: 'ADMIN',
             type: 'group',
             children: [
                 {
@@ -110,4 +109,3 @@ const AdminSideBar = () => {
     )
 }
 
-export default AdminSideBar;

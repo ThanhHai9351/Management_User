@@ -9,7 +9,7 @@ import {
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from '@/auth/passport/local-auth.guard';
 import { JwtAuthGuard } from '@/auth/passport/jwt-auth.guard';
-import { Public } from '@/decorator/meta-data';
+import { Public, ResponseMessage } from '@/decorator/customize';
 import { RegisterUserDto } from '@/auth/dto/register.dto';
 import { MailerService } from '@nestjs-modules/mailer';
 
@@ -23,6 +23,7 @@ export class AuthController {
   @Post('login')
   @Public()
   @UseGuards(LocalAuthGuard)
+  @ResponseMessage('Fetch Login')
   async login(@Request() req) {
     return this.authService.login(req.user);
   }

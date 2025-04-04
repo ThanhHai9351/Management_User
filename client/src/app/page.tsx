@@ -1,9 +1,12 @@
-import { Button } from "antd";
+import { auth } from "@/auth";
+import HomePage from "@/components/layout/homepage";
 
-export default function Home() {
+export default async function Home() {
+  const session = await auth()
+  console.log(">>check user path: / ", session);
   return (
     <div className="App">
-      <Button type="primary">Button</Button>
+      <HomePage />
     </div>
   );
 }
