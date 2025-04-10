@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Model } from 'mongoose';
@@ -11,6 +15,8 @@ import aqp from 'api-query-params';
 import { RegisterUserDto } from '@/auth/dto/register.dto';
 import { v4 as uuidv4 } from 'uuid';
 import { MailerService } from '@nestjs-modules/mailer';
+import { CodeAuthDto, RetryDto } from '@/auth/dto/code.auth.dto';
+const dayjs = require('dayjs');
 
 @Injectable()
 export class UsersService {
@@ -154,7 +160,7 @@ export class UsersService {
         ...registerDto,
         isActive: false,
         codeId,
-        codeExpired: new Date(Date.now() + 60 * 60 * 1000),
+        codeExpired: dayjs().add(5, 'minutes'),
         password: hashedPassword,
       });
 
@@ -168,13 +174,64 @@ export class UsersService {
           activationCode: codeId,
         },
       });
-      return GlobalResponseData(
-        StatusCodes.CREATED,
-        ReasonPhrases.CREATED,
-        user,
-      );
+      return user;
     } catch (err) {
       console.log(err);
+      throw new InternalServerErrorException();
+    }
+  }
+
+  async handleActive(data: CodeAuthDto) {
+    try {
+      const user = await this.userModel.findOne({
+        _id: data._id,
+        codeId: data.code,
+      });
+      if (!user) {
+        throw new BadRequestException('Mã code không hợp lệ hoặc đã hết hạn!');
+      }
+
+      const isBeforeCheck = dayjs().isBefore(user.codeExpired);
+      if (!isBeforeCheck) {
+        throw new BadRequestException('Mã code đã hết hạn!');
+      }
+      await this.userModel.findByIdAndUpdate(
+        data._id,
+        { isActive: true },
+        { new: true },
+      );
+      return data;
+    } catch {
+      throw new InternalServerErrorException();
+    }
+  }
+
+  async handleRetryCode(data: RetryDto) {
+    try {
+      const user = await this.getUserByEmail(data.email);
+      if (!user) {
+        throw new BadRequestException('Không tồn tại người dùng có email này!');
+      }
+      const codeId = uuidv4();
+      await this.userModel.findByIdAndUpdate(
+        user._id,
+        { codeId, codeExpired: dayjs().add(5, 'minutes') },
+        { new: true },
+      );
+      await this.mailerService.sendMail({
+        to: user.email,
+        from: 'Hari',
+        subject: 'Active your account at User Management!',
+        template: 'register.hbs',
+        context: {
+          name: user?.name || user?.email,
+          activationCode: codeId,
+        },
+      });
+      return {
+        _id: user._id,
+      };
+    } catch {
       throw new InternalServerErrorException();
     }
   }

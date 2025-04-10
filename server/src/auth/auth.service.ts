@@ -5,6 +5,7 @@ import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 import { GlobalResponse, GlobalResponseData } from '@/global/globalResponse';
 import { JwtService } from '@nestjs/jwt';
 import { RegisterUserDto } from '@/auth/dto/register.dto';
+import { CodeAuthDto, RetryDto } from '@/auth/dto/code.auth.dto';
 
 @Injectable()
 export class AuthService {
@@ -59,5 +60,13 @@ export class AuthService {
 
   async registerUser(registerDto: RegisterUserDto) {
     return this.usersService.registerUser(registerDto);
+  }
+
+  checkCode(data: CodeAuthDto) {
+    return this.usersService.handleActive(data);
+  }
+
+  retryCode(data: RetryDto) {
+    return this.usersService.handleRetryCode(data);
   }
 }

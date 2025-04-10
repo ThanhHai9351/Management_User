@@ -12,6 +12,7 @@ import { JwtAuthGuard } from '@/auth/passport/jwt-auth.guard';
 import { Public, ResponseMessage } from '@/decorator/customize';
 import { RegisterUserDto } from '@/auth/dto/register.dto';
 import { MailerService } from '@nestjs-modules/mailer';
+import { CodeAuthDto, RetryDto } from '@/auth/dto/code.auth.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -36,8 +37,23 @@ export class AuthController {
 
   @Public()
   @Post('register')
+  @ResponseMessage('Fetch Register')
   register(@Body() registerDto: RegisterUserDto) {
     return this.authService.registerUser(registerDto);
+  }
+
+  @Public()
+  @Post('check-code')
+  @ResponseMessage('Fetch code')
+  checkCode(@Body() CodeAuthDto: CodeAuthDto) {
+    return this.authService.checkCode(CodeAuthDto);
+  }
+
+  @Public()
+  @Post('retry-active')
+  @ResponseMessage('Fetch code')
+  retryActive(@Body() retrydto: RetryDto) {
+    return this.authService.retryCode(retrydto);
   }
 
   @Public()
