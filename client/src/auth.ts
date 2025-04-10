@@ -24,7 +24,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             },
           });
 
-          // console.log("API Response:", response);
+          console.log("API Response:", credentials);
 
           if (!response) {
             throw new Error("Invalid response from server");
